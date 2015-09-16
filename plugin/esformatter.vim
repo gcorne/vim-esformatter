@@ -18,6 +18,17 @@ if !exists('g:esformatter_debug') && (exists('loaded_esformatter') || &cp)
 endif
 
 let loaded_esformatter = 1
+let s:esformatter_path = 'esformatter'
+let s:npm_bin = ''
+
+if executable('npm')
+	let s:npm_bin = split(system('npm bin'), '\n')[0]
+endif
+
+" look a project-specific install of esformatter
+if strlen(s:npm_bin) && executable(s:npm_bin . '/esformatter')
+	let s:esformatter_path = s:npm_bin . '/esformatter'
+endif
 
 function! s:EsformatterNormal()
   " store current cursor position and change the working directory
@@ -27,7 +38,7 @@ function! s:EsformatterNormal()
   execute ':lcd' . file_wd
 
   " pass whole buffer content to esformatter
-  let output = system('esformatter', join(getline(1,'$'), "\n"))
+  let output = system(s:esformatter_path, join(getline(1,'$'), "\n"))
 
   if v:shell_error
     echom "Error while executing esformatter! no changes made."
@@ -68,7 +79,7 @@ function! s:EsformatterVisual() range
     let restore_last_line = 1
   endif
 
-  let output = system('esformatter', join(input, "\n"))
+  let output = system(s:esformatter_path, join(input, "\n"))
 
   if v:shell_error
     echom 'Error while executing esformatter! no changes made.'
